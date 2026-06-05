@@ -18,7 +18,7 @@ namespace OLED_Sleeper.Infrastructure
         private ApplicationInstanceManager? _instanceManager;
         private bool _isExiting = false;
 
-        public void Initialize(bool requestPause = false, bool requestResume = false, bool requestExit = false)
+        public void Initialize(bool requestPause = false, bool requestResume = false, bool requestExit = false, bool startHidden = false)
         {
             LoggingConfigurator.Configure();
             InitializeInstanceManager(requestPause, requestResume, requestExit);
@@ -26,7 +26,7 @@ namespace OLED_Sleeper.Infrastructure
             if (_instanceManager is { IsFirstInstance: false })
                 return;
 
-            ConfigureServices();
+            ConfigureServices(startHidden);
             StartOrchestrator();
             SetupMainWindowService();
             SetupTrayIconService();
@@ -39,12 +39,12 @@ namespace OLED_Sleeper.Infrastructure
             _instanceManager.Initialize(requestPause, requestResume, requestExit);
         }
 
-        private void ConfigureServices()
+        private void ConfigureServices(bool startHidden = false)
         {
             var applicationOptions = new ApplicationOptions
             {
                 StartPaused = false,
-                StartHidden = false,
+                StartHidden = startHidden,
                 ExitImmediately = false,
                 PauseImmediately = false,
                 ResumeImmediately = false,
