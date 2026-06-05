@@ -1,5 +1,8 @@
 # OLED Sleeper 😴 – Blackout or Dim Secondary Monitors on Windows
 
+Added -e to exit, -p to pause and -s to resume. Should also stop dimming monitor while blacking out. Fixed security issue with the test. Vibe coded, but seems working fine.
+-b1 to force blackout the 1st monitor, b2 - same for the 2nd (can't be woken up); -e1 and -e2 to enable again.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OLED Sleeper is a lightweight Windows tool to blackout or dim idle monitors, helping users prevent OLED burn-in and temporarily sleep secondary monitors for focus, gaming, or distraction-free work.
@@ -46,11 +49,7 @@ OLED Sleeper monitors each screen for activity. When a monitor is idle for a set
 
 ## How to Use
 
-1. Download the latest installer from the [Releases page](https://github.com/Quorthon13/OLED-Sleeper/releases).
-2. Run the installer and follow the on-screen prompts. During installation, you will be prompted to configure automatic startup and create shortcuts.
-3. Open OLED Sleeper from your Start Menu or desktop shortcut.
-4. Use the interface to select your target monitors, choose your preferred idle detection mode, and set your idle timers.
-5. Apply your settings. The application will minimize to the system tray and run in the background.
+Download the latest release from the [Releases page](https://github.com/Ghokury/OLED-Sleeper).
 
 ---
 
