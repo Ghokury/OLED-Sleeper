@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Windows;
 using OLED_Sleeper.Infrastructure;
 
@@ -19,12 +19,14 @@ namespace OLED_Sleeper
             bool pauseRequested = e.Args.Contains("-p");
             bool resumeRequested = e.Args.Contains("-s");
             bool exitRequested = e.Args.Contains("-e");
+            bool startHidden = e.Args.Contains("-h");
 
             _bootstrapper = new ApplicationBootstrapper();
             _bootstrapper.Initialize(
                 requestPause: pauseRequested,
                 requestResume: resumeRequested,
-                requestExit: exitRequested);
+                requestExit: exitRequested,
+                startHidden: startHidden);
         }
 
         protected override void OnExit(ExitEventArgs e)
