@@ -7,9 +7,6 @@ using System.Windows;
 
 namespace OLED_Sleeper.Infrastructure
 {
-    /// <summary>
-    /// Handles application startup, dependency injection, single-instance enforcement, orchestrator startup, and shutdown logic.
-    /// </summary>
     public class ApplicationBootstrapper : IDisposable
     {
         private IServiceProvider? _serviceProvider;
@@ -23,6 +20,8 @@ namespace OLED_Sleeper.Infrastructure
             bool requestResume = false,
             bool requestExit = false,
             bool startHidden = false,
+            bool requestGameMode = false,
+            bool requestWorkMode = false,
             bool requestBlackoutMonitor1 = false,
             bool requestEndBlackoutMonitor1 = false,
             bool requestBlackoutMonitor2 = false,
@@ -33,6 +32,8 @@ namespace OLED_Sleeper.Infrastructure
                 requestPause,
                 requestResume,
                 requestExit,
+                requestGameMode,
+                requestWorkMode,
                 requestBlackoutMonitor1,
                 requestEndBlackoutMonitor1,
                 requestBlackoutMonitor2,
@@ -52,6 +53,8 @@ namespace OLED_Sleeper.Infrastructure
             bool requestPause,
             bool requestResume,
             bool requestExit,
+            bool requestGameMode,
+            bool requestWorkMode,
             bool requestBlackoutMonitor1,
             bool requestEndBlackoutMonitor1,
             bool requestBlackoutMonitor2,
@@ -62,6 +65,8 @@ namespace OLED_Sleeper.Infrastructure
                 requestPause,
                 requestResume,
                 requestExit,
+                requestGameMode,
+                requestWorkMode,
                 requestBlackoutMonitor1,
                 requestEndBlackoutMonitor1,
                 requestBlackoutMonitor2,
@@ -86,9 +91,7 @@ namespace OLED_Sleeper.Infrastructure
 
         private void StartOrchestrator()
         {
-            if (_serviceProvider == null)
-                return;
-
+            if (_serviceProvider == null) return;
             var orchestrator = _serviceProvider.GetRequiredService<IApplicationOrchestrator>();
             orchestrator.Start();
         }
@@ -106,8 +109,7 @@ namespace OLED_Sleeper.Infrastructure
             _trayIconService = _serviceProvider.GetRequiredService<ITrayIconService>();
             _trayIconService.Initialize(
                 () => _mainWindowService?.ShowMainWindow(),
-                () => ShutdownApp()
-            );
+                () => ShutdownApp());
         }
 
         private void HookInstanceManagerActions()
@@ -126,6 +128,18 @@ namespace OLED_Sleeper.Infrastructure
             _instanceManager.SetEndBlackoutMonitor1Action(() => orchestrator.EndBlackoutMonitor1());
             _instanceManager.SetBlackoutMonitor2Action(() => orchestrator.BlackoutMonitor2());
             _instanceManager.SetEndBlackoutMonitor2Action(() => orchestrator.EndBlackoutMonitor2());
+
+            // Переключение режима debounce на лету
+            _instanceManager.SetGameModeAction(() =>
+            {
+                App.MouseDebounce = TimeSpan.FromMilliseconds(400);
+                Log.Information("Mouse debounce switched to GAME mode (400ms).");
+            });
+            _instanceManager.SetWorkModeAction(() =>
+            {
+                App.MouseDebounce = TimeSpan.Zero;
+                Log.Information("Mouse debounce switched to WORK mode (instant).");
+            });
         }
 
         public void ShutdownApp()

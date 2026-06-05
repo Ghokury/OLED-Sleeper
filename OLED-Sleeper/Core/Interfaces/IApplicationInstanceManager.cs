@@ -8,6 +8,8 @@ namespace OLED_Sleeper.Core.Interfaces
             bool requestPause = false,
             bool requestResume = false,
             bool requestExit = false,
+            bool requestGameMode = false,
+            bool requestWorkMode = false,
             bool requestBlackoutMonitor1 = false,
             bool requestEndBlackoutMonitor1 = false,
             bool requestBlackoutMonitor2 = false,
@@ -22,5 +24,8 @@ namespace OLED_Sleeper.Core.Interfaces
         void SetEndBlackoutMonitor1Action(Action endBlackoutMonitor1Action);
         void SetBlackoutMonitor2Action(Action blackoutMonitor2Action);
         void SetEndBlackoutMonitor2Action(Action endBlackoutMonitor2Action);
+
+        void SetGameModeAction(Action gameModeAction);
+        void SetWorkModeAction(Action workModeAction);
     }
 }

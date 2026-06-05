@@ -4,12 +4,11 @@ using OLED_Sleeper.Infrastructure;
 
 namespace OLED_Sleeper
 {
-    /// <summary>
-    /// WPF application class. Handles only WPF lifecycle events and delegates startup/shutdown to ApplicationBootstrapper.
-    /// </summary>
     public partial class App : Application
     {
         private ApplicationBootstrapper? _bootstrapper;
+
+        public static TimeSpan MouseDebounce { get; set; } = TimeSpan.Zero;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -20,6 +19,8 @@ namespace OLED_Sleeper
             bool resumeRequested = e.Args.Contains("-s");
             bool exitRequested = e.Args.Contains("-e");
             bool startHidden = e.Args.Contains("-h");
+            bool gameModeRequested = e.Args.Contains("-g");
+            bool workModeRequested = e.Args.Contains("-w");
 
             bool blackoutMonitor1Requested = e.Args.Contains("-b1");
             bool endBlackoutMonitor1Requested = e.Args.Contains("-e1");
@@ -32,6 +33,8 @@ namespace OLED_Sleeper
                 requestResume: resumeRequested,
                 requestExit: exitRequested,
                 startHidden: startHidden,
+                requestGameMode: gameModeRequested,
+                requestWorkMode: workModeRequested,
                 requestBlackoutMonitor1: blackoutMonitor1Requested,
                 requestEndBlackoutMonitor1: endBlackoutMonitor1Requested,
                 requestBlackoutMonitor2: blackoutMonitor2Requested,

@@ -2,6 +2,7 @@
 
 Added -e to exit, -p to pause and -s to resume. Should also stop dimming monitor while blacking out. Fixed security issue with the test. Vibe coded, but seems working fine.
 -b1 to force blackout the 1st monitor, b2 - same for the 2nd (can't be woken up); -e1 and -e2 to enable again.
+-g for 400 ms delay to avoid waking up in games with raw input and -w for 0 ms delay for work.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
