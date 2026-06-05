@@ -1,4 +1,5 @@
-﻿using OLED_Sleeper.Core.Interfaces;
+﻿using System.Linq;
+using OLED_Sleeper.Core.Interfaces;
 using OLED_Sleeper.Features.MonitorBlackout.Commands;
 using OLED_Sleeper.Features.MonitorBlackout.Services.Interfaces;
 using OLED_Sleeper.Features.MonitorDimming.Services.Interfaces;
@@ -11,7 +12,7 @@ namespace OLED_Sleeper.Features.MonitorBlackout.Handlers
     /// <summary>
     /// Handles the execution of the <see cref="ApplyBlackoutOverlayCommand"/>.
     /// This class contains the business logic for applying the blackout effect to a monitor,
-    /// which includes showing a software overlay and setting the hardware brightness to zero if supported.
+    /// which now uses only a software overlay and does not modify hardware brightness.
     /// </summary>
     public class ApplyBlackoutOverlayCommandHandler : ICommandHandler<ApplyBlackoutOverlayCommand>
     {
@@ -22,7 +23,7 @@ namespace OLED_Sleeper.Features.MonitorBlackout.Handlers
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyBlackoutOverlayCommandHandler"/> class.
         /// </summary>
-        /// <param name="monitorInfoManager"></param>
+        /// <param name="monitorInfoManager">Service that provides monitor information.</param>
         /// <param name="monitorBlackoutService">The service responsible for showing/hiding blackout overlays.</param>
         /// <param name="monitorDimmingService">The service responsible for controlling monitor brightness.</param>
         public ApplyBlackoutOverlayCommandHandler(
@@ -37,8 +38,7 @@ namespace OLED_Sleeper.Features.MonitorBlackout.Handlers
 
         /// <summary>
         /// Executes the blackout logic asynchronously based on the command's data.
-        /// It shows a blackout overlay and, if the monitor supports DDC/CI,
-        /// it simultaneously dims the monitor's brightness to 0.
+        /// It shows a blackout overlay but does not change hardware brightness anymore.
         /// Exceptions are caught and logged to avoid silent failures.
         /// </summary>
         /// <param name="command">The command containing the details of the monitor to black out.</param>
@@ -49,25 +49,17 @@ namespace OLED_Sleeper.Features.MonitorBlackout.Handlers
                 Log.Information("Executing ApplyBlackoutCommand for monitor {HardwareId}.", command.HardwareId);
 
                 var monitorInfo = await GetMonitorInfoAsync(command.HardwareId);
-
-                // Task 1: Show the software blackout overlay.
-                // We start this task but don't await it immediately.
-                var showOverlayTask = _monitorBlackoutService.ShowBlackoutOverlayAsync(monitorInfo.HardwareId, monitorInfo.Bounds);
-
-                // Task 2: If supported, also set the hardware brightness to 0 via DDC/CI.
-                if (monitorInfo.IsDdcCiSupported)
+                if (monitorInfo == null)
                 {
-                    Log.Information("Monitor {HardwareId} supports DDC/CI. Setting brightness to 0 for blackout.", monitorInfo.HardwareId);
-                    var dimTask = _monitorDimmingService.DimMonitorAsync(monitorInfo.HardwareId, 0);
+                    Log.Warning("Monitor info not found for HardwareId {HardwareId}.", command.HardwareId);
+                    return;
+                }
 
-                    // Await both the overlay and dimming tasks to complete concurrently.
-                    await Task.WhenAll(showOverlayTask, dimTask);
-                }
-                else
-                {
-                    // If DDC/CI is not supported, just wait for the overlay task to complete.
-                    await showOverlayTask;
-                }
+                // Blackout is implemented purely as a software overlay.
+                // We intentionally do not touch hardware brightness here
+                // to avoid leaving the monitor stuck at minimal brightness
+                // if the app is force-closed or crashes.
+                await _monitorBlackoutService.ShowBlackoutOverlayAsync(monitorInfo.HardwareId, monitorInfo.Bounds);
             }
             catch (Exception ex)
             {

@@ -24,23 +24,30 @@ using OLED_Sleeper.Features.UserSettings.Services.Interfaces;
 using OLED_Sleeper.UI.Services;
 using OLED_Sleeper.UI.Services.Interfaces;
 using OLED_Sleeper.UI.ViewModels;
-using Microsoft.Extensions.Options;
 
 namespace OLED_Sleeper.Infrastructure
 {
-    /// <summary>
-    /// Configures and builds the application's dependency injection service provider.
-    /// </summary>
     public static class ServiceConfigurator
     {
-        /// <summary>
-        /// Registers all application services and builds the service provider.
-        /// </summary>
-        /// <param name="instanceManager">The application instance manager to register as a singleton.</param>
-        /// <returns>The built <see cref="IServiceProvider"/>.</returns>
-        public static IServiceProvider ConfigureServices(ApplicationInstanceManager instanceManager, ApplicationOptions applicationOptions)
+        public static IServiceProvider ConfigureServices(
+            ApplicationInstanceManager instanceManager,
+            ApplicationOptions applicationOptions)
         {
             var services = new ServiceCollection();
+
+            services.AddOptions();
+            services.Configure<ApplicationOptions>(options =>
+            {
+                options.StartPaused = applicationOptions.StartPaused;
+                options.StartHidden = applicationOptions.StartHidden;
+                options.ExitImmediately = applicationOptions.ExitImmediately;
+                options.PauseImmediately = applicationOptions.PauseImmediately;
+                options.ResumeImmediately = applicationOptions.ResumeImmediately;
+                options.StartMinimized = applicationOptions.StartMinimized;
+                options.TrayOnly = applicationOptions.TrayOnly;
+            });
+
+            services.AddSingleton(applicationOptions);
             services.AddSingleton<IMediator, Mediator>();
 
             services.AddTransient<ICommandHandler<ApplyMonitorActiveBehaviorCommand>, ApplyMonitorActiveBehaviorCommandHandler>();
@@ -52,8 +59,6 @@ namespace OLED_Sleeper.Infrastructure
             services.AddTransient<ICommandHandler<RestoreBrightnessOnAllMonitorsCommand>, RestoreBrightnessOnAllMonitorsCommandHandler>();
             services.AddTransient<ICommandHandler<SynchronizeMonitorStateCommand>, SynchronizeMonitorStateCommandHandler>();
             services.AddTransient<ICommandHandler<RestoreMonitorStateCommand>, RestoreMonitorStateCommandHandler>();
-
-            services.AddSingleton(Options.Create(applicationOptions));
 
             services.AddSingleton<IMonitorInfoManager, MonitorInfoManager>();
             services.AddSingleton<IMonitorStateWatcher, MonitorStateWatcher>();

@@ -1,76 +1,69 @@
 using Microsoft.Extensions.DependencyInjection;
 using OLED_Sleeper.Core;
 using OLED_Sleeper.Core.Interfaces;
-using OLED_Sleeper.Infrastructure.Helpers;
 using OLED_Sleeper.UI.Services.Interfaces;
 using Serilog;
-using System;
-using System.Linq;
 using System.Windows;
 
 namespace OLED_Sleeper.Infrastructure
 {
     /// <summary>
     /// Handles application startup, dependency injection, single-instance enforcement, orchestrator startup, and shutdown logic.
-    /// Keeps <see cref="Application"/> subclasses lightweight and focused on WPF lifecycle events.
     /// </summary>
-    public class ApplicationBootstrapper(string[] args) : IDisposable
+    public class ApplicationBootstrapper : IDisposable
     {
-        private readonly ApplicationOptions _applicationOptions = CommandLineHelper.ParseArguments(args);
-
         private IServiceProvider? _serviceProvider;
         private ITrayIconService? _trayIconService;
         private IMainWindowService? _mainWindowService;
         private ApplicationInstanceManager? _instanceManager;
         private bool _isExiting = false;
 
-        /// <summary>
-        /// Initializes the application: logging, single-instance, DI, orchestrator, main window, and tray icon.
-        /// </summary>
-        public void Initialize()
+        public void Initialize(bool requestPause = false, bool requestResume = false, bool requestExit = false)
         {
             LoggingConfigurator.Configure();
-            InitializeInstanceManager();
+            InitializeInstanceManager(requestPause, requestResume, requestExit);
+
+            if (_instanceManager is { IsFirstInstance: false })
+                return;
+
             ConfigureServices();
             StartOrchestrator();
-
             SetupMainWindowService();
             SetupTrayIconService();
-            HookInstanceManagerShowWindow();
+            HookInstanceManagerActions();
         }
 
-        /// <summary>
-        /// Initializes the single-instance manager before any other services.
-        /// </summary>
-        private void InitializeInstanceManager()
+        private void InitializeInstanceManager(bool requestPause, bool requestResume, bool requestExit)
         {
             _instanceManager = new ApplicationInstanceManager();
-            _instanceManager.Initialize();
+            _instanceManager.Initialize(requestPause, requestResume, requestExit);
         }
 
-        /// <summary>
-        /// Configures dependency injection services and builds the service provider using <see cref="ServiceConfigurator"/>.
-        /// </summary>
         private void ConfigureServices()
         {
-            _serviceProvider = ServiceConfigurator.ConfigureServices(_instanceManager!, _applicationOptions);
+            var applicationOptions = new ApplicationOptions
+            {
+                StartPaused = false,
+                StartHidden = false,
+                ExitImmediately = false,
+                PauseImmediately = false,
+                ResumeImmediately = false,
+                StartMinimized = false,
+                TrayOnly = false
+            };
+
+            _serviceProvider = ServiceConfigurator.ConfigureServices(_instanceManager!, applicationOptions);
         }
 
-        /// <summary>
-        /// Starts the application orchestrator service.
-        /// </summary>
         private void StartOrchestrator()
         {
-            if (_serviceProvider != null)
-            {
-                var orchestrator = _serviceProvider.GetRequiredService<IApplicationOrchestrator>();
-                orchestrator.Start();
-            }
+            if (_serviceProvider == null)
+                return;
+
+            var orchestrator = _serviceProvider.GetRequiredService<IApplicationOrchestrator>();
+            orchestrator.Start();
         }
 
-        /// <summary>
-        /// Sets up the main window service and its data context.
-        /// </summary>
         private void SetupMainWindowService()
         {
             if (_serviceProvider == null) return;
@@ -78,9 +71,6 @@ namespace OLED_Sleeper.Infrastructure
             _mainWindowService.SetupMainWindow();
         }
 
-        /// <summary>
-        /// Configures and displays the tray icon using the tray icon service.
-        /// </summary>
         private void SetupTrayIconService()
         {
             if (_serviceProvider == null) return;
@@ -91,21 +81,22 @@ namespace OLED_Sleeper.Infrastructure
             );
         }
 
-        /// <summary>
-        /// Hooks up the delegate for showing the main window after DI and services are ready.
-        /// </summary>
-        private void HookInstanceManagerShowWindow()
+        private void HookInstanceManagerActions()
         {
-            _instanceManager?.SetShowMainWindowAction(() => _mainWindowService?.ShowMainWindow());
+            if (_instanceManager == null || _serviceProvider == null)
+                return;
+
+            var orchestrator = _serviceProvider.GetRequiredService<IApplicationOrchestrator>();
+
+            _instanceManager.SetShowMainWindowAction(() => _mainWindowService?.ShowMainWindow());
+            _instanceManager.SetPauseAction(() => orchestrator.Pause());
+            _instanceManager.SetResumeAction(() => orchestrator.Resume());
+            _instanceManager.SetExitAction(() => ShutdownApp());
         }
 
-        /// <summary>
-        /// Performs shutdown logic, including log flush and tray icon disposal.
-        /// Only the first instance will restore monitor states.
-        /// </summary>
         public void ShutdownApp()
         {
-            if (_isExiting) return; // Prevent re-entrancy
+            if (_isExiting) return;
             _isExiting = true;
 
             if (_instanceManager?.IsFirstInstance == true)
@@ -122,9 +113,6 @@ namespace OLED_Sleeper.Infrastructure
             Application.Current.Shutdown();
         }
 
-        /// <summary>
-        /// Disposes resources used by the bootstrapper.
-        /// </summary>
         public void Dispose()
         {
             _trayIconService?.Dispose();

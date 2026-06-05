@@ -1,19 +1,13 @@
-﻿using CommandLine;
-
-namespace OLED_Sleeper.Infrastructure
+﻿namespace OLED_Sleeper.Infrastructure
 {
-    /// <summary>
-    /// Represents command-line options supported by the application.
-    /// These options are parsed at application startup and control runtime behavior.
-    /// </summary>
     public class ApplicationOptions
     {
-        /// <summary>
-        /// When specified, the application starts hidden in the system tray instead
-        /// of opening the main window. Intended primarily for launches performed
-        /// during system startup.
-        /// </summary>
-        [Option('h', "hide", Required = false, HelpText = "Start the application hidden in the system tray.")]
+        public bool StartPaused { get; set; }
         public bool StartHidden { get; set; }
+        public bool ExitImmediately { get; set; }
+        public bool PauseImmediately { get; set; }
+        public bool ResumeImmediately { get; set; }
+        public bool StartMinimized { get; set; }
+        public bool TrayOnly { get; set; }
     }
 }

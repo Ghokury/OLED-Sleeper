@@ -1,7 +1,9 @@
 {
   "profiles": {
     "OLED-Sleeper": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "workingDirectory": ".",
+      "commandLineArgs": ""
     }
   }
 }

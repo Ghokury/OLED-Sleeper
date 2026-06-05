@@ -14,5 +14,15 @@
         /// Stops the orchestrator, unsubscribing from events and restoring monitor states.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        /// Pauses idle detection and restores monitors to their active state.
+        /// </summary>
+        void Pause();
+
+        /// <summary>
+        /// Resumes idle detection.
+        /// </summary>
+        void Resume();
     }
 }
