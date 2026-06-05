@@ -1,26 +1,26 @@
 namespace OLED_Sleeper.Core.Interfaces
 {
-    /// <summary>
-    /// Defines the contract for managing single-instance enforcement and inter-process signaling.
-    /// </summary>
     public interface IApplicationInstanceManager : IDisposable
     {
-        /// <summary>
-        /// Indicates whether this is the first instance of the application.
-        /// </summary>
         bool IsFirstInstance { get; }
 
-        /// <summary>
-        /// Initializes the single-instance check and event signaling.
-        /// </summary>
         void Initialize(
             bool requestPause = false,
             bool requestResume = false,
-            bool requestExit = false);
+            bool requestExit = false,
+            bool requestBlackoutMonitor1 = false,
+            bool requestEndBlackoutMonitor1 = false,
+            bool requestBlackoutMonitor2 = false,
+            bool requestEndBlackoutMonitor2 = false);
 
         void SetShowMainWindowAction(Action showMainWindowAction);
         void SetPauseAction(Action pauseAction);
         void SetResumeAction(Action resumeAction);
         void SetExitAction(Action exitAction);
+
+        void SetBlackoutMonitor1Action(Action blackoutMonitor1Action);
+        void SetEndBlackoutMonitor1Action(Action endBlackoutMonitor1Action);
+        void SetBlackoutMonitor2Action(Action blackoutMonitor2Action);
+        void SetEndBlackoutMonitor2Action(Action endBlackoutMonitor2Action);
     }
 }

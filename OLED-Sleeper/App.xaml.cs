@@ -21,12 +21,21 @@ namespace OLED_Sleeper
             bool exitRequested = e.Args.Contains("-e");
             bool startHidden = e.Args.Contains("-h");
 
+            bool blackoutMonitor1Requested = e.Args.Contains("-b1");
+            bool endBlackoutMonitor1Requested = e.Args.Contains("-e1");
+            bool blackoutMonitor2Requested = e.Args.Contains("-b2");
+            bool endBlackoutMonitor2Requested = e.Args.Contains("-e2");
+
             _bootstrapper = new ApplicationBootstrapper();
             _bootstrapper.Initialize(
                 requestPause: pauseRequested,
                 requestResume: resumeRequested,
                 requestExit: exitRequested,
-                startHidden: startHidden);
+                startHidden: startHidden,
+                requestBlackoutMonitor1: blackoutMonitor1Requested,
+                requestEndBlackoutMonitor1: endBlackoutMonitor1Requested,
+                requestBlackoutMonitor2: blackoutMonitor2Requested,
+                requestEndBlackoutMonitor2: endBlackoutMonitor2Requested);
         }
 
         protected override void OnExit(ExitEventArgs e)

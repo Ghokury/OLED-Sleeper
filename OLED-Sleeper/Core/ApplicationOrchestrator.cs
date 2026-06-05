@@ -1,5 +1,7 @@
-﻿using OLED_Sleeper.Core.Interfaces;
+﻿using System.Linq;
+using OLED_Sleeper.Core.Interfaces;
 using OLED_Sleeper.Features.MonitorBehavior.Commands;
+using OLED_Sleeper.Features.MonitorBlackout.Commands;
 using OLED_Sleeper.Features.MonitorDimming.Commands;
 using OLED_Sleeper.Features.MonitorIdleDetection.Services.Interfaces;
 using OLED_Sleeper.Features.MonitorState.Services.Interfaces;
@@ -21,6 +23,8 @@ namespace OLED_Sleeper.Core
 
         private bool _isStarted;
         private bool _isPaused;
+        private bool _monitor1ForcedBlackout;
+        private bool _monitor2ForcedBlackout;
 
         public ApplicationOrchestrator(
             IMediator mediator,
@@ -67,6 +71,8 @@ namespace OLED_Sleeper.Core
 
             _isStarted = false;
             _isPaused = false;
+            _monitor1ForcedBlackout = false;
+            _monitor2ForcedBlackout = false;
         }
 
         public void Pause()
@@ -100,9 +106,97 @@ namespace OLED_Sleeper.Core
 
             var settings = _monitorSettingsFileService.LoadSettings();
             _monitorIdleDetectionService.UpdateSettings(settings);
-            _monitorIdleDetectionService.Start();
+
+            if (!_monitor1ForcedBlackout && !_monitor2ForcedBlackout)
+            {
+                _monitorIdleDetectionService.Start();
+            }
 
             _isPaused = false;
+        }
+
+        public void BlackoutMonitor1()
+        {
+            BlackoutMonitorByIndex(0, monitorNumber: 1, setFlag: () => _monitor1ForcedBlackout = true);
+        }
+
+        public void EndBlackoutMonitor1()
+        {
+            EndBlackoutMonitorByIndex(
+                0,
+                monitorNumber: 1,
+                clearFlag: () => _monitor1ForcedBlackout = false);
+        }
+
+        public void BlackoutMonitor2()
+        {
+            BlackoutMonitorByIndex(1, monitorNumber: 2, setFlag: () => _monitor2ForcedBlackout = true);
+        }
+
+        public void EndBlackoutMonitor2()
+        {
+            EndBlackoutMonitorByIndex(
+                1,
+                monitorNumber: 2,
+                clearFlag: () => _monitor2ForcedBlackout = false);
+        }
+
+        private void BlackoutMonitorByIndex(int index, int monitorNumber, Action setFlag)
+        {
+            if (!_isStarted)
+                return;
+
+            var settings = _monitorSettingsFileService.LoadSettings();
+            var target = settings.ElementAtOrDefault(index);
+
+            if (target == null || string.IsNullOrWhiteSpace(target.HardwareId))
+            {
+                Log.Warning("BlackoutMonitor{MonitorNumber}: no monitor settings found.", monitorNumber);
+                return;
+            }
+
+            Log.Information(
+                "BlackoutMonitor{MonitorNumber}: forced blackout on monitor {HardwareId}.",
+                monitorNumber,
+                target.HardwareId);
+
+            setFlag();
+
+            _monitorIdleDetectionService.Stop();
+
+            var command = new ApplyBlackoutOverlayCommand { HardwareId = target.HardwareId };
+            _mediator.SendAsync(command);
+        }
+
+        private void EndBlackoutMonitorByIndex(int index, int monitorNumber, Action clearFlag)
+        {
+            if (!_isStarted)
+                return;
+
+            var settings = _monitorSettingsFileService.LoadSettings();
+            var target = settings.ElementAtOrDefault(index);
+
+            if (target == null || string.IsNullOrWhiteSpace(target.HardwareId))
+            {
+                Log.Warning("EndBlackoutMonitor{MonitorNumber}: no monitor settings found.", monitorNumber);
+                return;
+            }
+
+            Log.Information(
+                "EndBlackoutMonitor{MonitorNumber}: removing forced blackout from monitor {HardwareId}.",
+                monitorNumber,
+                target.HardwareId);
+
+            clearFlag();
+
+            var command = new HideBlackoutOverlayCommand { HardwareId = target.HardwareId };
+            _mediator.SendAsync(command);
+
+            if (!_isPaused && !_monitor1ForcedBlackout && !_monitor2ForcedBlackout)
+            {
+                _monitorIdleDetectionService.UpdateSettings(settings);
+                _monitorIdleDetectionService.Start();
+            }
         }
 
         private void SubscribeToEvents()

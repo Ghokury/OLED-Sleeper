@@ -18,10 +18,25 @@ namespace OLED_Sleeper.Infrastructure
         private ApplicationInstanceManager? _instanceManager;
         private bool _isExiting = false;
 
-        public void Initialize(bool requestPause = false, bool requestResume = false, bool requestExit = false, bool startHidden = false)
+        public void Initialize(
+            bool requestPause = false,
+            bool requestResume = false,
+            bool requestExit = false,
+            bool startHidden = false,
+            bool requestBlackoutMonitor1 = false,
+            bool requestEndBlackoutMonitor1 = false,
+            bool requestBlackoutMonitor2 = false,
+            bool requestEndBlackoutMonitor2 = false)
         {
             LoggingConfigurator.Configure();
-            InitializeInstanceManager(requestPause, requestResume, requestExit);
+            InitializeInstanceManager(
+                requestPause,
+                requestResume,
+                requestExit,
+                requestBlackoutMonitor1,
+                requestEndBlackoutMonitor1,
+                requestBlackoutMonitor2,
+                requestEndBlackoutMonitor2);
 
             if (_instanceManager is { IsFirstInstance: false })
                 return;
@@ -33,10 +48,24 @@ namespace OLED_Sleeper.Infrastructure
             HookInstanceManagerActions();
         }
 
-        private void InitializeInstanceManager(bool requestPause, bool requestResume, bool requestExit)
+        private void InitializeInstanceManager(
+            bool requestPause,
+            bool requestResume,
+            bool requestExit,
+            bool requestBlackoutMonitor1,
+            bool requestEndBlackoutMonitor1,
+            bool requestBlackoutMonitor2,
+            bool requestEndBlackoutMonitor2)
         {
             _instanceManager = new ApplicationInstanceManager();
-            _instanceManager.Initialize(requestPause, requestResume, requestExit);
+            _instanceManager.Initialize(
+                requestPause,
+                requestResume,
+                requestExit,
+                requestBlackoutMonitor1,
+                requestEndBlackoutMonitor1,
+                requestBlackoutMonitor2,
+                requestEndBlackoutMonitor2);
         }
 
         private void ConfigureServices(bool startHidden = false)
@@ -92,6 +121,11 @@ namespace OLED_Sleeper.Infrastructure
             _instanceManager.SetPauseAction(() => orchestrator.Pause());
             _instanceManager.SetResumeAction(() => orchestrator.Resume());
             _instanceManager.SetExitAction(() => ShutdownApp());
+
+            _instanceManager.SetBlackoutMonitor1Action(() => orchestrator.BlackoutMonitor1());
+            _instanceManager.SetEndBlackoutMonitor1Action(() => orchestrator.EndBlackoutMonitor1());
+            _instanceManager.SetBlackoutMonitor2Action(() => orchestrator.BlackoutMonitor2());
+            _instanceManager.SetEndBlackoutMonitor2Action(() => orchestrator.EndBlackoutMonitor2());
         }
 
         public void ShutdownApp()

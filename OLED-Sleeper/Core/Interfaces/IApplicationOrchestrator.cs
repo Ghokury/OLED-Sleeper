@@ -24,5 +24,30 @@
         /// Resumes idle detection.
         /// </summary>
         void Resume();
+
+        /// <summary>
+        /// Forces blackout on monitor 1.
+        /// </summary>
+        void BlackoutMonitor1();
+
+        /// <summary>
+        /// Removes forced blackout from monitor 1.
+        /// </summary>
+        void EndBlackoutMonitor1();
+
+        /// <summary>
+        /// Forces blackout on monitor 2.
+        /// </summary>
+        void BlackoutMonitor2();
+
+        /// <summary>
+        /// Removes forced blackout from monitor 2.
+        /// </summary>
+        void EndBlackoutMonitor2();
+
+        /// <summary>
+        /// Restores brightness on all monitors.
+        /// </summary>
+        void RestoreAllMonitors();
     }
 }
