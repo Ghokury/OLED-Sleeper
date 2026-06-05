@@ -1,6 +1,6 @@
 # OLED Sleeper 😴 – Blackout or Dim Secondary Monitors on Windows
 
-Added -e for exit, -p for pause and -s to resume. Should also stop dimming monitor while blacking out. Also, fixed security issue with the test. Vibe coded, but seems working fine.
+Added -e to exit, -p to pause and -s to resume. Should also stop dimming monitor while blacking out. Also, fixed security issue with the test. Vibe coded, but seems working fine.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
